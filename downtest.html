@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DormDash — Temporarily Unavailable</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#FD2D00" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+    :root {
+      --brand: #FD2D00;
+      --bg: #050810;
+      --text: #ffffff;
+      --muted: #a0aec0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* layered background blobs */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .blob {
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      border-radius: 9999px;
+      filter: blur(82px);
+      opacity: 0.8;
+      mix-blend-mode: screen;
+      animation: float 12s ease-in-out infinite;
+    }
+
+    .blob.orange {
+      background: radial-gradient(circle, rgba(253,45,0,0.9), rgba(253,45,0,0));
+      top: -80px;
+      left: -40px;
+    }
+
+    .blob.purple {
+      background: radial-gradient(circle, rgba(99,102,241,0.7), rgba(99,102,241,0));
+      bottom: -120px;
+      right: -40px;
+      animation-delay: 2s;
+    }
+
+    .blob.red {
+      background: radial-gradient(circle, rgba(253,45,0,0.4), rgba(253,45,0,0));
+      top: 40%;
+      left: 50%;
+      transform: translateX(-50%);
+      animation-delay: 4s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(35px) scale(1.05); }
+    }
+
+    /* particle canvas */
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* Main card */
+    .card {
+      z-index: 2;
+      background: rgba(5, 8, 16, 0.35);
+      backdrop-filter: blur(22px);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 28px;
+      padding: 42px 36px 34px;
+      text-align: center;
+      box-shadow: 0 25px 75px rgba(0, 0, 0, 0.5);
+      width: min(500px, 92%);
+      animation: fadeIn 1s ease;
+    }
+
+    .logo-wrap {
+      width: 90px;
+      height: 90px;
+      margin: 0 auto 18px;
+      border-radius: 22px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.08), transparent);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      animation: logoFloat 4.5s ease-in-out infinite;
+    }
+
+    .logo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .pill {
+      display: inline-block;
+      background: rgba(253, 45, 0, 0.2);
+      border: 1px solid rgba(253, 45, 0, 0.45);
+      color: #fff;
+      border-radius: 999px;
+      padding: 7px 18px 6px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.045em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      animation: pulse 3.6s ease-in-out infinite;
+    }
+
+    h1 {
+      font-size: clamp(1.7rem, 3.4vw, 2.2rem);
+      line-height: 1.08;
+      margin-bottom: 12px;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .note {
+      margin-top: 18px;
+      font-size: 0.7rem;
+      color: rgba(160, 174, 192, 0.5);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 22px rgba(253,45,0,0.12); }
+      50% { opacity: .85; box-shadow: 0 0 28px rgba(253,45,0,0.32); }
+    }
+
+    @media (max-width: 460px) {
+      .card { padding: 32px 20px 26px; }
+      h1 { font-size: 1.55rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- pretty layered background -->
+  <div class="bg-layer">
+    <div class="blob orange"></div>
+    <div class="blob purple"></div>
+    <div class="blob red"></div>
+  </div>
+
+  <!-- particle canvas -->
+  <canvas id="bg"></canvas>
+
+  <!-- content -->
+  <main class="card">
+    <div class="logo-wrap">
+      <img src="/dormdash.png" alt="DormDash logo">
+    </div>
+    <div class="pill">Service interruption</div>
+    <h1>DormDash is currently down</h1>
+    <p>We’re performing a quick reset on our systems. Please check back tomorrow to place your order.</p>
+    <div class="note">Pepperdine student delivery • DormDash</div>
+  </main>
+
+  <script>
+    // ----- PARTICLE + PARALLAX BACKGROUND -----
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles = [];
+    let mouse = { x: null, y: null };
+
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+      constructor() {
+        this.init();
+      }
+      init() {
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
+        this.size = Math.random() * 2.2 + 0.4;
+        this.speedX = (Math.random() - 0.5) * 0.35;
+        this.speedY = (Math.random() - 0.5) * 0.35;
+        this.alpha = Math.random() * 0.6 + 0.15;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(253,45,0,${this.alpha})`;
+        ctx.fill();
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        // gentle mouse attraction
+        if (mouse.x && mouse.y) {
+          const dx = this.x - mouse.x;
+          const dy = this.y - mouse.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 140) {
+            this.x += dx * 0.015;
+            this.y += dy * 0.015;
+          }
+        }
+
+        if (this.x < -20 || this.x > w + 20 || this.y < -20 || this.y > h + 20) {
+          this.init();
+          this.x = Math.random() * w;
+          this.y = Math.random() * h;
+        }
+      }
+    }
+
+    for (let i = 0; i < 140; i++) {
+      particles.push(new Particle());
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, w, h);
+      // subtle overlay to avoid harsh black
+      const grd = ctx.createLinearGradient(0, 0, w, h);
+      grd.addColorStop(0, 'rgba(5, 8, 16, 0.3)');
+      grd.addColorStop(1, 'rgba(10, 14, 26, 0.1)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, w, h);
+
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // mouse parallax for blobs
+    const blobs = document.querySelectorAll('.blob');
+    window.addEventListener('pointermove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      const dx = (e.clientX - cx) / cx; // -1 to 1
+      const dy = (e.clientY - cy) / cy;
+
+      blobs.forEach((blob, i) => {
+        const strength = (i + 1) * 6; // each layer moves a bit more
+        blob.style.transform = `translate(${dx * strength}px, ${dy * strength}px)`;
+      });
+    });
+  </script>
+</body>
+</html>
